@@ -37,6 +37,9 @@ Shader "Hidden/Dither" {
 
             float _Spread;
             int _RedColorCount, _GreenColorCount, _BlueColorCount , _BayerLevel;
+            int _ConvertToGrayscale;
+            float _RedGrayscaleWeight, _GreenGrayscaleWeight, _BlueGrayscaleWeight;
+            int _GrayscaleColorCount;
 
             static const int bayer2[2 * 2] = {
                 0, 2,
@@ -75,6 +78,7 @@ Shader "Hidden/Dither" {
 
             fixed4 fp(v2f i) : SV_Target {
                 float4 col = _MainTex.Sample(point_clamp_sampler, i.uv);
+                float4 output = col;
 
                 int x = i.uv.x * _MainTex_TexelSize.z;
                 int y = i.uv.y * _MainTex_TexelSize.w;
@@ -84,11 +88,25 @@ Shader "Hidden/Dither" {
                 bayerValues[1] = GetBayer4(x, y);
                 bayerValues[2] = GetBayer8(x, y);
 
-                float4 output = col + _Spread * bayerValues[_BayerLevel];
+                if (_ConvertToGrayscale == 1) {
+                    float w = (col.r * _RedGrayscaleWeight) + (col.g * _GreenGrayscaleWeight) + (col.b * _BlueGrayscaleWeight);
+                    output.r = w;
+                    output.g = w;
+                    output.b = w;
+                }
 
-                output.r = floor((_RedColorCount - 1.0f) * output.r + 0.5) / (_RedColorCount - 1.0f);
-                output.g = floor((_GreenColorCount - 1.0f) * output.g + 0.5) / (_GreenColorCount - 1.0f);
-                output.b = floor((_BlueColorCount - 1.0f) * output.b + 0.5) / (_BlueColorCount - 1.0f);
+                output = output + _Spread * bayerValues[_BayerLevel];
+
+                if (_ConvertToGrayscale == 1) {
+                    float w = floor((_GrayscaleColorCount - 1.0f) * output.r + 0.5) / (_GrayscaleColorCount - 1.0f);
+                    output.r = w;
+                    output.g = w;
+                    output.b = w;
+                } else {
+                    output.r = floor((_RedColorCount - 1.0f) * output.r + 0.5) / (_RedColorCount - 1.0f);
+                    output.g = floor((_GreenColorCount - 1.0f) * output.g + 0.5) / (_GreenColorCount - 1.0f);
+                    output.b = floor((_BlueColorCount - 1.0f) * output.b + 0.5) / (_BlueColorCount - 1.0f);
+                }
 
                 return output;
             }

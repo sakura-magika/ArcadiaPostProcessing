@@ -23,6 +23,18 @@ public class Ditherer : MonoBehaviour {
 
     public bool pointFilterDown = false;
 
+    // Grayscale
+    public bool convertToGrayscale = false;
+
+    [Range(0.0f, 1.0f)]
+    public float redGrayscaleWeight = 0.299f;
+    [Range(0.0f, 1.0f)]
+    public float greenGrayscaleWeight = 0.587f;
+    [Range(0.0f, 1.0f)]
+    public float blueGrayscaleWeight = 0.114f;
+    [Range(2, 16)]
+    public int grayscaleColorCount = 2;
+
     private Material ditherMat;
     
     void OnEnable() {
@@ -40,6 +52,12 @@ public class Ditherer : MonoBehaviour {
         ditherMat.SetInt("_GreenColorCount", greenColorCount);
         ditherMat.SetInt("_BlueColorCount", blueColorCount);
         ditherMat.SetInt("_BayerLevel", bayerLevel);
+
+        ditherMat.SetInt("_ConvertToGrayscale", convertToGrayscale ? 1 : 0);
+        ditherMat.SetFloat("_RedGrayscaleWeight", redGrayscaleWeight);
+        ditherMat.SetFloat("_GreenGrayscaleWeight", greenGrayscaleWeight);
+        ditherMat.SetFloat("_BlueGrayscaleWeight", blueGrayscaleWeight);
+        ditherMat.SetInt("_GrayscaleColorCount", grayscaleColorCount);
 
         int width = source.width;
         int height = source.height;
